@@ -16,6 +16,19 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## 0) 一键安装并写入 Codex 配置（推荐）
+
+在 WSL/Linux 下：
+```bash
+chmod +x install.sh
+./install.sh --project-root /abs/path/to/your/project
+```
+
+可选参数：
+- `--literature-dir /abs/path`：文献导入/下载目录（默认优先用 `project/02-文献与资料`）
+- `--codex-home /abs/path`：Codex 配置目录（默认 `~/.codex` 或环境变量 `CODEX_HOME`）
+- `--install-dir /abs/path`：仓库安装目录（默认 `~/.local/share/codex-mcp-server`）
+
 ## 2) 本地启动（用于手动调试）
 
 ```bash
