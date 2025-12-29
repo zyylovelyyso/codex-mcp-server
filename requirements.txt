@@ -1,0 +1,7 @@
+mcp
+httpx
+pandas
+openpyxl
+beautifulsoup4
+lxml
+
