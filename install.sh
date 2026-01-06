@@ -6,6 +6,7 @@ INSTALL_DIR_DEFAULT="${HOME}/.local/share/codex-mcp-server"
 
 PROJECT_ROOT=""
 LITERATURE_DIR=""
+VIZKB_ROOT=""
 CODEX_HOME_DIR="${CODEX_HOME:-${HOME}/.codex}"
 INSTALL_DIR="${INSTALL_DIR_DEFAULT}"
 REPO_URL="${REPO_URL_DEFAULT}"
@@ -15,7 +16,7 @@ usage() {
 install.sh - Install codex-mcp-server and update Codex CLI config.toml
 
 Usage:
-  ./install.sh --project-root /abs/path/to/project [--literature-dir /abs/path] [--install-dir /abs/path] [--codex-home /abs/path] [--repo-url URL]
+  ./install.sh --project-root /abs/path/to/project [--literature-dir /abs/path] [--vizkb-root /abs/path] [--install-dir /abs/path] [--codex-home /abs/path] [--repo-url URL]
 
 Notes:
   - This script clones/updates the repo, creates a venv, installs requirements, and upserts MCP sections into:
@@ -29,6 +30,8 @@ while [[ $# -gt 0 ]]; do
       PROJECT_ROOT="${2:-}"; shift 2 ;;
     --literature-dir)
       LITERATURE_DIR="${2:-}"; shift 2 ;;
+    --vizkb-root)
+      VIZKB_ROOT="${2:-}"; shift 2 ;;
     --install-dir)
       INSTALL_DIR="${2:-}"; shift 2 ;;
     --codex-home)
@@ -69,6 +72,14 @@ print(Path(r'''${LITERATURE_DIR}''').expanduser().resolve())
 PY
 )"
 
+if [[ -n "${VIZKB_ROOT}" ]]; then
+  VIZKB_ROOT="$(python3 - <<PY
+from pathlib import Path
+print(Path(r'''${VIZKB_ROOT}''').expanduser().resolve())
+PY
+)"
+fi
+
 mkdir -p "${INSTALL_DIR}"
 
 if [[ -d "${INSTALL_DIR}/.git" ]]; then
@@ -92,9 +103,9 @@ touch "${CONFIG_PATH}"
   --config "${CONFIG_PATH}" \
   --repo-dir "${INSTALL_DIR}" \
   --project-root "${PROJECT_ROOT}" \
-  --literature-dir "${LITERATURE_DIR}"
+  --literature-dir "${LITERATURE_DIR}" \
+  ${VIZKB_ROOT:+--vizkb-root "${VIZKB_ROOT}"}
 
 echo "[4/4] Done"
 echo "Restart Codex CLI to load new MCP servers."
 echo "Config updated: ${CONFIG_PATH}"
-

@@ -43,6 +43,11 @@ def main() -> int:
     parser.add_argument("--repo-dir", required=True, help="Path to cloned codex-mcp-server repo")
     parser.add_argument("--project-root", required=True, help="MCP_ALLOWED_ROOT / MCP_ALLOWED_ROOTS value")
     parser.add_argument("--literature-dir", required=True, help="MCP_ALLOWED_ROOT for literature downloads/imports")
+    parser.add_argument(
+        "--vizkb-root",
+        default="",
+        help="Optional: VIZKB_ROOT (path to ai-viz-kb folder) for vizkb_mcp.py",
+    )
     args = parser.parse_args()
 
     config_path = Path(args.config).expanduser()
@@ -57,6 +62,8 @@ def main() -> int:
     web_excel = repo_dir / "web_excel_mcp.py"
     files = repo_dir / "file_search_mcp.py"
     literature = repo_dir / "literature_mcp.py"
+    openai = repo_dir / "openai_mcp.py"
+    vizkb = repo_dir / "vizkb_mcp.py"
 
     text = config_path.read_text(encoding="utf-8") if config_path.exists() else ""
 
@@ -96,6 +103,29 @@ def main() -> int:
         [f'MCP_ALLOWED_ROOT = "{literature_dir}"'],
     )
 
+    # OpenAI MCP (no mandatory env: prefers OPENAI_API_KEY or CODEX_HOME/auth.json)
+    if openai.exists():
+        text = _upsert_section(
+            text,
+            "mcp_servers.openai",
+            [f'command = "{python_cmd}"', f'args = ["{openai}"]'],
+        )
+
+    # VizKB MCP (only if user provides a valid VIZKB_ROOT)
+    vizkb_root_raw = (args.vizkb_root or "").strip()
+    if vizkb.exists() and vizkb_root_raw:
+        vizkb_root = Path(vizkb_root_raw).expanduser().resolve()
+        text = _upsert_section(
+            text,
+            "mcp_servers.vizkb",
+            [f'command = "{python_cmd}"', f'args = ["{vizkb}"]'],
+        )
+        text = _upsert_section(
+            text,
+            "mcp_servers.vizkb.env",
+            [f'VIZKB_ROOT = "{vizkb_root}"'],
+        )
+
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(text.rstrip() + "\n", encoding="utf-8")
 
@@ -104,4 +134,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
